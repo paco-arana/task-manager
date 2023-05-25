@@ -1,6 +1,10 @@
 package com.paco.demo;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.ArrayList;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,58 +15,125 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
 @RestController
 public class DemoApplication {
 
-	private List<Task> taskList=new ArrayList<Task>();
+    private Map<Integer, Task> taskMap = new HashMap<>();
+    private int nextTaskId = 1;
 
     public static void main(String[] args) {
-      SpringApplication.run(DemoApplication.class, args);
+        SpringApplication.run(DemoApplication.class, args);
     }
 
-    @PostMapping("/create")
-    public int create(@RequestBody() Task task) {
-		task.id = taskList.size() + 1;
-		taskList.add(task);
+    @PostMapping("/todos")
+    public int create(@RequestBody Task task) throws Exception{
 
-    	return task.id;
+		// Text should be present
+		if (task.text == null || task.text.isEmpty()) {
+        throw new IllegalArgumentException("Task text is required.");
+    	}
+		// Priority should be an int between 1 and 3
+    	if (task.priority < 1 || task.priority > 3) {
+        throw new IllegalArgumentException("Task priority is required.");
+    	}
+
+        task.id = nextTaskId;
+        task.completed = false;
+        task.startDate = Math.toIntExact(System.currentTimeMillis() / 1000);
+
+        taskMap.put(nextTaskId, task);
+        nextTaskId++;
+
+        return task.id;
     }
 
-	@GetMapping("/todos")
-    public List<Task> getAllTodos() {
-    	return taskList;
+    @GetMapping("/todos")
+    public Collection<Task> getAllTodos(
+        @RequestParam(value = "sort") String sort,
+        @RequestParam(value = "filterCompleted") String filterCompleted,
+		@RequestParam(value = "filterPriority") String filterPriority,
+		@RequestParam(value = "keywords", defaultValue = "none") String keywords) {
+
+		List<Task> sortedTasks = new ArrayList<>(taskMap.values());
+
+		// We sort the tasks:
+		if (sort.equals("priority")) {
+        	sortedTasks.sort(Comparator.comparingInt(task -> task.priority));
+		} else if (sort.equals("due")) {
+			sortedTasks.sort(Comparator.comparingInt(task -> task.dueDate));
+		} // Otherwise do nothing
+
+		// Filter the tasks by status:
+		if (filterCompleted.equals("done")) {
+			sortedTasks.removeIf(task -> task.completed == false);
+		} else if (filterCompleted.equals("undone")) {
+			sortedTasks.removeIf(task -> task.completed == false);
+		} // Otherwise do nothing
+
+		// Filter the tasks by priority:
+		if (filterPriority.equals("high")) {
+			sortedTasks.removeIf(task -> task.priority == 2 || task.priority == 3);
+		} else if (filterPriority.equals("medium")) {
+			sortedTasks.removeIf(task -> task.priority == 1 || task.priority == 3);
+		} else if (filterPriority.equals("low")) {
+			sortedTasks.removeIf(task -> task.priority == 1 || task.priority == 2);
+		} // Otherwise do nothing
+
+		// Search by keywords in the name:
+		if (keywords != "none") {
+			// Remove if task.text doesn't contain keywords
+			sortedTasks.removeIf(
+				task -> !task.text.toLowerCase().contains(
+					keywords.toLowerCase()
+					)
+				);
+		}
+
+		return sortedTasks;
+    }
+
+    @PutMapping("/todos/{id}/done")
+    public Task doneTodo(@PathVariable int id){
+        Task taskFound = taskMap.get(id);
+        taskFound.completed = true;
+		taskFound.endDate = Math.toIntExact(System.currentTimeMillis() / 1000);
+        return taskFound;
+    }
+
+	@PutMapping("/todos/{id}/undone")
+    public Task undoTodo(@PathVariable int id){
+        Task taskFound = taskMap.get(id);
+        taskFound.completed = false;
+        return taskFound;
     }
 
 	@PutMapping("/todos/{id}")
-    public Task updateTodo(@PathVariable int id, @RequestBody() Task task) throws Exception {
+    public Task updateTodo(@PathVariable int id, @RequestBody Task task) throws Exception {
+        Task taskFound = taskMap.get(id);
 
-		Task taskFound = taskList.stream().filter(t -> {
-			return t.id == id;
-		}).findAny().orElse(null);
+		// Text should be present
+		if (task.text == null || task.text.isEmpty()) {
+        throw new IllegalArgumentException("Task text is required.");
+    	}
+		// Priority should be an int between 1 and 3
+    	if (task.priority < 1 || task.priority > 3) {
+        throw new IllegalArgumentException("Task priority is required.");
+    	}
 
-		if (taskFound == null) {
-			throw new Exception("No task with matching id");
-		}
+        taskFound.text = task.text;
+        taskFound.priority = task.priority;
+		taskFound.dueDate = task.dueDate;
 
-		taskFound.text = task.text;
-		
-    	return taskFound;
+        return taskFound;
     }
 
-	@DeleteMapping("/todos/{id}")
-	public List<Task> deleteTodo(@PathVariable int id) {
-
-		Task taskFound = taskList.stream().filter(t -> {
-			return t.id == id;
-		}).findAny().orElse(null);
-
-		taskList.remove(taskFound);
-
-		return taskList;		
-	}
-
-
+    @DeleteMapping("/todos/{id}")
+    public Collection<Task> deleteTodo(@PathVariable int id) {
+        taskMap.remove(id);
+        return taskMap.values();
+    }
 }

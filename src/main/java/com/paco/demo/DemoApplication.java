@@ -14,10 +14,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 
+// Needed so we ccan receive requests from 8080
+import org.springframework.web.bind.annotation.CrossOrigin;
+
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@CrossOrigin(origins = "http://localhost:8080")
 @SpringBootApplication
 @RestController
 public class DemoApplication {
@@ -53,10 +57,10 @@ public class DemoApplication {
 
     @GetMapping("/todos")
     public Collection<Task> getAllTodos(
-        @RequestParam(value = "sort") String sort,
-        @RequestParam(value = "filterCompleted") String filterCompleted,
-		@RequestParam(value = "filterPriority") String filterPriority,
-		@RequestParam(value = "keywords", defaultValue = "none") String keywords) {
+        @RequestParam(value = "sort", defaultValue = "none", required = false) String sort,
+        @RequestParam(value = "filterCompleted", defaultValue = "none", required = false) String filterCompleted,
+		@RequestParam(value = "filterPriority", defaultValue = "none", required = false) String filterPriority,
+		@RequestParam(value = "keywords", defaultValue = "none", required = false) String keywords) {
 
 		List<Task> sortedTasks = new ArrayList<>(taskMap.values());
 
@@ -65,13 +69,14 @@ public class DemoApplication {
         	sortedTasks.sort(Comparator.comparingInt(task -> task.priority));
 		} else if (sort.equals("due")) {
 			sortedTasks.sort(Comparator.comparingInt(task -> task.dueDate));
-		} // Otherwise do nothing
+		} // Otherwise do nothing 
 
+		/*
 		// Filter the tasks by status:
 		if (filterCompleted.equals("done")) {
 			sortedTasks.removeIf(task -> task.completed == false);
 		} else if (filterCompleted.equals("undone")) {
-			sortedTasks.removeIf(task -> task.completed == false);
+			sortedTasks.removeIf(task -> task.completed == true);
 		} // Otherwise do nothing
 
 		// Filter the tasks by priority:
@@ -91,7 +96,7 @@ public class DemoApplication {
 					keywords.toLowerCase()
 					)
 				);
-		}
+		}*/
 
 		return sortedTasks;
     }

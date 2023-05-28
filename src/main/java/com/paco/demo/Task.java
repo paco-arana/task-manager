@@ -11,7 +11,7 @@ public class Task {
  // dueDates are saved as an int in yyyymmdd format for simplifying the sorting
  public int dueDate = 0;
 
- // Dates are saved as seconds since Unix epoch
+ // Dates are saved as seconds (not milliseconds) since Unix epoch
  // "time to finish task" can be easily calculater by "endDate - startDate"
  public int startDate = 0;
  public int endDate = 0;

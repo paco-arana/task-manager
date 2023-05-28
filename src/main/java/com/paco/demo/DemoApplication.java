@@ -65,13 +65,17 @@ public class DemoApplication {
 		List<Task> sortedTasks = new ArrayList<>(taskMap.values());
 
 		// We sort the tasks:
-		if (sort.equals("priority")) {
-        	sortedTasks.sort(Comparator.comparingInt(task -> task.priority));
-		} else if (sort.equals("due")) {
-			sortedTasks.sort(Comparator.comparingInt(task -> task.dueDate));
-		} // Otherwise do nothing 
+    	if (sort.equals("priority")) {
+        sortedTasks.sort(Comparator.comparingInt(task -> task.priority));
+    	} else if (sort.equals("due")) {
+        sortedTasks.sort(Comparator.comparingInt(task -> {
+            if (task.dueDate == 0) {
+                return 100000000; // Tasks with no due date set are sent to year 10,000
+            }
+            return task.dueDate;
+        	}));
+    	} // Otherwise do nothing 
 
-		/*
 		// Filter the tasks by status:
 		if (filterCompleted.equals("done")) {
 			sortedTasks.removeIf(task -> task.completed == false);
@@ -89,14 +93,12 @@ public class DemoApplication {
 		} // Otherwise do nothing
 
 		// Search by keywords in the name:
-		if (keywords != "none") {
-			// Remove if task.text doesn't contain keywords
-			sortedTasks.removeIf(
-				task -> !task.text.toLowerCase().contains(
-					keywords.toLowerCase()
-					)
-				);
-		}*/
+		if (!keywords.equals("none")) {
+    		// Remove tasks if task.text doesn't contain keywords
+    		sortedTasks.removeIf(
+				task -> !task.text.toLowerCase().contains(keywords.toLowerCase())
+			);
+		}
 
 		return sortedTasks;
     }
@@ -113,6 +115,7 @@ public class DemoApplication {
     public Task undoTodo(@PathVariable int id){
         Task taskFound = taskMap.get(id);
         taskFound.completed = false;
+		taskFound.endDate = 0;
         return taskFound;
     }
 

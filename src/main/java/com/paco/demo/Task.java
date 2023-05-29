@@ -2,7 +2,8 @@ package com.paco.demo;
 
 public class Task {
  public int id;
- public boolean completed;
+ // This should be set default to false butss it had a squiggly line
+ public boolean completed = false;
  public String text;
 
  // Priority is saved as int, 1 is high priority, 3 is low priority

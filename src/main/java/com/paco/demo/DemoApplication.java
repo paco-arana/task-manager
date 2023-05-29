@@ -27,7 +27,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class DemoApplication {
 
     private Map<Integer, Task> taskMap = new HashMap<>();
+
+    // Getter needed for tests
+    public Map<Integer, Task> getTaskMap() {
+        return taskMap;
+    }
+
     private int nextTaskId = 1;
+
+    // Getter needed for tests
+    public int getNextTaskId() {
+        return nextTaskId;
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(DemoApplication.class, args);

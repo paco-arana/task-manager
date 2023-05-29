@@ -15,4 +15,32 @@ public class Task {
  // "time to finish task" can be easily calculater by "endDate - startDate"
  public int startDate = 0;
  public int endDate = 0;
+
+ public void setId(int id) {
+     this.id = id;
+ }
+
+ public int getId() {
+     return id;
+ }
+
+ public void setText(String text) {
+     this.text = text;
+ }
+
+ public String getText() {
+     return text;
+ }
+
+ public void setPriority(int priority) {
+     this.priority = priority;
+ }
+
+ public int getPriority() {
+     return priority;
+ }
+
+ public boolean isCompleted() {
+     return completed;
+ }
 }

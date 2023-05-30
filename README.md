@@ -1,4 +1,4 @@
-# To do app API
+# To Do App API
 
 ## How to run
 

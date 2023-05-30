@@ -14,6 +14,8 @@ To run the tests, you can use:
 ./mvnw test
 ```
 
+The API can have issues running with Zscaler active, you can temporarily disable it to run.
+
 ---
 
 ## About
